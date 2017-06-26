@@ -1,0 +1,1 @@
+console.log('Only in other Page');
