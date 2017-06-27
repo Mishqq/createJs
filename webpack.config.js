@@ -1,12 +1,19 @@
 const path = require('path');
+const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
+let isProd = process.env.NODE_ENV === 'production';
+
+let cssDev = ['style-loader', 'css-loader', 'sass-loader'];
+let cssProd = ExtractTextPlugin.extract({
+	fallback: 'style-loader',
+	use: ['css-loader', 'sass-loader']
+});
+let cssConfig = isProd ? cssProd : cssDev;
+
 module.exports = {
-	entry: {
-		app: './src/app.js',
-		other: './src/other.js'
-	},
+	entry: './src/index.js',
 	output: {
 		// path: 'C:\\Dev\\createJs\\dist',
 		path: path.resolve(__dirname, 'dist'),
@@ -16,10 +23,7 @@ module.exports = {
 		rules: [
 			{
 				test: /\.sass$/,
-				use: ExtractTextPlugin.extract({
-					fallback: 'style-loader',
-					use: ['css-loader', 'sass-loader']
-				})
+				use: cssConfig
 			},
 			{
 				test: /\.js$/,
@@ -29,34 +33,43 @@ module.exports = {
 			{
 				test: /\.pug$/,
 				use: ['html-loader', 'pug-html-loader']
+			},
+			{
+				test: /\.(jpe?g|png|gif|svg)$/i,
+				//use: 'file-loader?name=[hash:6].[ext]&outputPath=images/',
+				use: [
+					// 'file-loader?name=[name].[ext]&outputPath=images/&publicPath=images/',
+					// 'file-loader?name=[name].[ext]&outputPath=images/',
+					'file-loader?name=images/[name].[ext]',
+					'image-webpack-loader'
+				]
 			}
 		]
 	},
 	devServer: {
+		hot: true,
 		contentBase: path.resolve(__dirname, 'dist'),
+		publicPath: '/',
 		compress: true,
 		port: 9000,
 		stats: 'errors-only',
 		// open: true
 	},
 	plugins: [
+		new webpack.HotModuleReplacementPlugin(),
 		new HtmlWebpackPlugin({
 			title: 'createJs',
 			// minify: {
 			// 	collapseWhitespace: true
 			// },
 			hash: true,
-			excludeChunks: ['other'],
-			// filename: './../index.pug',
-			template: './src/index.pug'
+			// filename: './../index.html',
+			template: './src/index.html'
 		}),
-		new HtmlWebpackPlugin({
-			title: 'createJs',
-			hash: true,
-			chunk: ['other'],
-			filename: 'other.html',
-			template: './src/other.pug'
-		}),
-		new ExtractTextPlugin("app.css")
+		new ExtractTextPlugin({
+			filename: "app.css",
+			disable: !isProd,
+			allChunks: true
+		})
 	]
 };
