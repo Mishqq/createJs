@@ -51,10 +51,11 @@ module.exports = {
 		contentBase: path.resolve(__dirname, 'dist'),
 		publicPath: '/',
 		compress: true,
-		port: 9000,
+		port: 8000,
 		stats: 'errors-only',
 		// open: true
 	},
+	externals: {},
 	plugins: [
 		new webpack.HotModuleReplacementPlugin(),
 		new HtmlWebpackPlugin({
