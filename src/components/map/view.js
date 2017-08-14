@@ -1,12 +1,14 @@
 import {TimelineMax, TweenMax} from "gsap";
 
 export default class MapView {
-	constructor(mapModel){
+	constructor(mapModel, map){
 		this.cells = [];
+		this.mapModel = mapModel;
+		this.map = map;
 
 		this.pixi = new PIXI.Container();
 
-		mapModel.forEach(cell => {
+		map.forEach(cell => {
 			let cellView = this.createCellView(cell);
 			cell.view = cellView;
 
@@ -17,6 +19,8 @@ export default class MapView {
 
 	createCellView(cell){
 		let cellView = new PIXI.Container();
+
+		cellView.model = cell;
 
 		let bg = new PIXI.Graphics();
 
@@ -32,7 +36,7 @@ export default class MapView {
 		if(cell.empty){
 			cellView.interactive = true;
 			cellView.buttonMode = true;
-			['tap', 'click'].forEach((event)=>{ cellView.on(event, this.cellClick) });
+			['tap', 'click'].forEach(event=>{ cellView.on(event, this.viewAvailableSquare, this) });
 
 			let active = new PIXI.Graphics();
 
@@ -45,21 +49,61 @@ export default class MapView {
 			cellView.addChild( active );
 		}
 
+		cellView.setActive = function(){
+			if(this._active){
+				this.active.alpha = 0;
+				this.tween.kill();
+			} else {
+				this.tween = new TweenMax(this.active, 0.3, {alpha: 0.75, repeat: -1, yoyo: true});
+			}
+			this._active = !this._active;
+		}.bind(cellView);
+
+		cellView.text = new PIXI.Text('', {fontFamily: 'Arial', fontSize: 20, fill: 0x0C3E74});
+		cellView.text.anchor = {x: 0.5, y:0.5};
+		cellView.text.position = {x: 50, y:50};
+		cellView.addChild( cellView.text );
+
 		return cellView;
 	}
 
-	cellClick(){
-		if(this._clicked){
+	cellClick(cell){
+		if(cell._active){
 
-			this.active.alpha = 0;
-			this.tween.kill();
+			cell.active.alpha = 0;
+			cell.tween.kill();
 
 		} else {
 
-			this.tween = new TweenMax(this.active, 0.3, {alpha: 0.75, repeat: -1, yoyo: true});
+			cell.tween = new TweenMax(cell.active, 0.3, {alpha: 0.75, repeat: -1, yoyo: true});
 
 		}
 
-		this._clicked = !this._clicked;
+		cell._active = !cell._active;
+	}
+
+	viewAvailableSquare(event){
+		let clickedCell = event.currentTarget;
+
+		if(clickedCell._active && clickedCell.model._trace === 0){
+			this.map.forEach(cell => {
+				delete cell._trace;
+				if(cell.view._active){
+					cell.view.setActive();
+					cell.view.text.text = '';
+				}
+			});
+		} else {
+			this.map.forEach(cell => {
+				delete cell._trace;
+				if(cell.view._active){
+					cell.view.setActive();
+					cell.view.text.text = '';
+				}
+			});
+
+			let availCells = this.mapModel.calculateAvailableCells(clickedCell.model, 5);
+			availCells.forEach(cell => cell.view.setActive());
+		}
 	}
 }
