@@ -1,4 +1,7 @@
 import {TimelineMax, TweenMax} from "gsap";
+import {settings, cellTypes} from './../../defs';
+
+let cellWidth = settings.width / settings.cells;
 
 export default class MapView {
 	constructor(mapModel, map){
@@ -18,38 +21,37 @@ export default class MapView {
 	}
 
 	createCellView(cell){
-		let cellView = new PIXI.Container();
+		let view = new PIXI.Container();
 
-		cellView.model = cell;
+		view.model = cell;
+		view.interactive = cell.movable;
+		view.buttonMode = cell.movable;
+		view.position = {x: cell.col*cellWidth, y: cell.row*cellWidth};
+
 
 		let bg = new PIXI.Graphics();
+		bg.beginFill(cellTypes[cell.type].bg);
+		bg.lineStyle(1, cellTypes[cell.type].border, 1);
+		bg.moveTo(0, 0).lineTo(cellWidth, 0).lineTo(cellWidth, cellWidth).lineTo(0, cellWidth).lineTo(0, 0).endFill();
 
-		cellView.position = {x: cell.col*50, y: cell.row*50};
+		view.bg = bg;
+		view.addChild( bg );
 
-		bg.beginFill(cell.empty ? 0x5AD5EE : 0xEE4D63);
-		bg.lineStyle(1, cell.empty ? 0x5159EE : 0xEEC78C, 1);
-		bg.moveTo(0, 0).lineTo(50, 0).lineTo(50, 50).lineTo(0, 50).lineTo(0, 0).endFill();
-
-		cellView.bg = bg;
-		cellView.addChild( bg );
-
-		if(cell.empty){
-			cellView.interactive = true;
-			cellView.buttonMode = true;
-			['tap', 'click'].forEach(event=>{ cellView.on(event, this.viewAvailableSquare, this) });
+		if(cell.movable){
+			['tap', 'click'].forEach(event=>{ view.on(event, this.viewAvailableSquare, this) });
 
 			let active = new PIXI.Graphics();
 
-			active.beginFill(cell.empty ? 0xC3EEE8 : 0xEE4D63);
-			active.lineStyle(1, cell.empty ? 0x5159EE : 0xEEC78C, 1);
-			active.moveTo(0, 0).lineTo(50, 0).lineTo(50, 50).lineTo(0, 50).lineTo(0, 0).endFill();
+			active.beginFill(cellTypes[cell.type].bgActive);
+			active.lineStyle(1, cellTypes[cell.type].border, 1);
+			active.moveTo(0, 0).lineTo(cellWidth, 0).lineTo(cellWidth, cellWidth).lineTo(0, cellWidth).lineTo(0, 0).endFill();
 			active.alpha = 0;
 
-			cellView.active = active;
-			cellView.addChild( active );
+			view.active = active;
+			view.addChild( active );
 		}
 
-		cellView.setActive = function(){
+		view.setActive = function(){
 			if(this._active){
 				this.active.alpha = 0;
 				this.tween.kill();
@@ -57,14 +59,14 @@ export default class MapView {
 				this.tween = new TweenMax(this.active, 0.3, {alpha: 0.75, repeat: -1, yoyo: true});
 			}
 			this._active = !this._active;
-		}.bind(cellView);
+		}.bind(view);
 
-		cellView.text = new PIXI.Text('', {fontFamily: 'Arial', fontSize: 20, fill: 0x0C3E74});
-		cellView.text.anchor = {x: 0.5, y:0.5};
-		cellView.text.position = {x: 25, y:25};
-		cellView.addChild( cellView.text );
+		view.text = new PIXI.Text('', {fontFamily: 'Arial', fontSize: 18, fill: 0x0C3E74});
+		view.text.anchor = {x: 0.5, y:0.5};
+		view.text.position = {x: cellWidth/2, y:cellWidth/2};
+		view.addChild( view.text );
 
-		return cellView;
+		return view;
 	}
 
 	cellClick(cell){

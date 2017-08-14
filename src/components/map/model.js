@@ -1,22 +1,10 @@
 import MapView from './view';
-
-const map = [
-	'x', ' ', ' ', 'x', ' ', 'x', 'x', 'x', ' ', ' ',
-	'x', ' ', ' ', 'x', ' ', ' ', ' ', 'x', ' ', ' ',
-	'x', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' ', ' ',
-	'x', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-	' ', ' ', 'x', 'x', 'x', ' ', ' ', 'x', 'x', ' ',
-	' ', 'x', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-	' ', 'x', ' ', 'x', ' ', 'x', ' ', ' ', ' ', 'x',
-	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x',
-	'x', 'x', 'x', ' ', 'x', ' ', 'x', ' ', ' ', 'x',
-	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x',
-];
+import {settings, cellTypes, mapTemplate as map} from './../../defs';
 
 export default class Model{
 	constructor(){
 
-		this.map = this.createMapModel(10);
+		this.map = this.createMapModel(settings.cells);
 
 		let view = new MapView( this, this.map );
 
@@ -41,18 +29,25 @@ export default class Model{
 	}
 
 	createCell(idx, col, row, content){
+		content = content === ' ' ? 'empty' : content;
+
 		let template = {
 			idx: null,
 			col: null,
 			row: null,
-			empty: null,
+			movable: null,
+			type: null,
 			neighbors: []
 		};
 
 		template.idx = idx;
 		template.col = col;
 		template.row = row;
-		template.empty = content !== 'x';
+		template.type = content;
+
+		template.movable = cellTypes[content].movable;
+		if(template.movable)
+			template.movableCf = cellTypes[content].movableCf;
 
 		return template;
 	}
@@ -76,27 +71,28 @@ export default class Model{
 	calculateAvailableCells(cell, steps){
 		let cellArr = [];
 
-		let setTrace = (arr, trace)=>{
-			if(trace > steps) return false;
+		let setTrace = (arr, prevTrace, start)=>{
+			arr = arr.filter(cell => cell.movable && (prevTrace + cell.movableCf) <= steps);
 
 			arr.forEach(cell => {
-				if(cell.empty){
-
-					if(cell._trace === undefined){
-						cell._trace = trace;
+				if(start){
+					cell._trace = 0;
+				} else {
+					if(cell._trace !== undefined && prevTrace + cell.movableCf > cell._trace){
+						return false;
 					} else {
-						cell._trace = trace < cell._trace ? trace : cell._trace;
+						cell._trace = prevTrace + cell.movableCf;
 					}
-
-					cell.view.text.text = cell._trace;
-					if(!~cellArr.indexOf(cell)) cellArr.push(cell);
-
-					setTrace(cell.neighbors, trace+1);
 				}
+
+				cell.view.text.text = cell._trace;
+				if(!~cellArr.indexOf(cell)) cellArr.push(cell);
+
+				setTrace(cell.neighbors, cell._trace);
 			});
 
 		};
-		setTrace([cell], 0);
+		setTrace([cell], 0, true);
 
 		return cellArr;
 	}
