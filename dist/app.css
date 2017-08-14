@@ -1,1 +1,1 @@
-body{background-color:pink}body div{color:green}body canvas{display:block;margin:auto}
+body{background-color:pink}body div{color:green}body canvas{position:absolute;display:block;top:50%;left:50%;margin:-250px}

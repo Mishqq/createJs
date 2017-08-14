@@ -24,11 +24,11 @@ export default class MapView {
 
 		let bg = new PIXI.Graphics();
 
-		cellView.position = {x: cell.col*100, y: cell.row*100};
+		cellView.position = {x: cell.col*50, y: cell.row*50};
 
 		bg.beginFill(cell.empty ? 0x5AD5EE : 0xEE4D63);
 		bg.lineStyle(1, cell.empty ? 0x5159EE : 0xEEC78C, 1);
-		bg.moveTo(0, 0).lineTo(100, 0).lineTo(100, 100).lineTo(0, 100).lineTo(0, 0).endFill();
+		bg.moveTo(0, 0).lineTo(50, 0).lineTo(50, 50).lineTo(0, 50).lineTo(0, 0).endFill();
 
 		cellView.bg = bg;
 		cellView.addChild( bg );
@@ -42,7 +42,7 @@ export default class MapView {
 
 			active.beginFill(cell.empty ? 0xC3EEE8 : 0xEE4D63);
 			active.lineStyle(1, cell.empty ? 0x5159EE : 0xEEC78C, 1);
-			active.moveTo(0, 0).lineTo(100, 0).lineTo(100, 100).lineTo(0, 100).lineTo(0, 0).endFill();
+			active.moveTo(0, 0).lineTo(50, 0).lineTo(50, 50).lineTo(0, 50).lineTo(0, 0).endFill();
 			active.alpha = 0;
 
 			cellView.active = active;
@@ -61,7 +61,7 @@ export default class MapView {
 
 		cellView.text = new PIXI.Text('', {fontFamily: 'Arial', fontSize: 20, fill: 0x0C3E74});
 		cellView.text.anchor = {x: 0.5, y:0.5};
-		cellView.text.position = {x: 50, y:50};
+		cellView.text.position = {x: 25, y:25};
 		cellView.addChild( cellView.text );
 
 		return cellView;

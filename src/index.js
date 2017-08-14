@@ -5,7 +5,7 @@ import GameController from './controllers/gameController';
 
 window['PIXI'] = PIXI;
 
-const app = new PIXI.Application(1000, 1000, {backgroundColor: 0x1099bb, antialias: true});
+const app = new PIXI.Application(500, 500, {backgroundColor: 0x1099bb, antialias: true});
 document.body.appendChild(app.view);
 
 app.stop();
