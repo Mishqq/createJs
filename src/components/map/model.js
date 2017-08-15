@@ -45,6 +45,8 @@ export default class Model{
 		template.row = row;
 		template.type = content;
 
+		template.textColor = cellTypes[content].textColor;
+
 		template.movable = cellTypes[content].movable;
 		if(template.movable)
 			template.movableCf = cellTypes[content].movableCf;

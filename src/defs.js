@@ -12,6 +12,7 @@ export const cellTypes = {
 		bgActive: 0xEE4D63,
 		border: 0xEEC78C,
 		movable: false,
+		textColor: 0xEEA797,
 		text: '',
 		texture: ''
 	},
@@ -19,6 +20,7 @@ export const cellTypes = {
 		bg: 0x3D3EEE,
 		bgActive: 0x6FC6E,
 		movable: false,
+		textColor: 0xA5E6EE,
 		text: '',
 		texture: ''
 	},
@@ -27,6 +29,7 @@ export const cellTypes = {
 		bgActive: 0x6AD664,
 		movable: true,
 		movableCf: 2,
+		textColor: 0xE7FEAB,
 		text: '',
 		texture: ''
 	},
@@ -35,6 +38,7 @@ export const cellTypes = {
 		bgActive: 0x147F1A,
 		movable: true,
 		movableCf: 3,
+		textColor: 0xE7FEAB,
 		text: '',
 		texture: ''
 	},
@@ -44,6 +48,7 @@ export const cellTypes = {
 		border: 0x817D65,
 		movable: true,
 		movableCf: 1,
+		textColor: 0xBBBD73,
 		text: '',
 		texture: ''
 	}

@@ -66,6 +66,11 @@ export default class MapView {
 		view.text.position = {x: cellWidth/2, y:cellWidth/2};
 		view.addChild( view.text );
 
+		view.angleText = new PIXI.Text(cell.movableCf || 'x', {fontFamily: 'Arial', fontSize: 10, fill: cell.textColor});
+		view.angleText.anchor = {x: 1, y:1};
+		view.angleText.position = {x: cellWidth-1, y: cellWidth-1};
+		view.addChild( view.angleText );
+
 		return view;
 	}
 
