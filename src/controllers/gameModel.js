@@ -11,6 +11,8 @@ export default class gameModel {
 		this.persons.push( person );
 
 		this.stage.addChild( person.pixi );
+
+		this.map.updateMatrix();
 	}
 
 	setActivePerson(person){

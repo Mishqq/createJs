@@ -3,6 +3,7 @@ import {settings, cellTypes, mapTemplate as map} from './../../defs';
 
 export default class Model{
 	constructor(clickCallback){
+		this.mapMatrix = [];
 		this.map = this.createMapModel(settings.cells);
 
 		let view = new MapView( this, this.map, clickCallback );
@@ -19,8 +20,13 @@ export default class Model{
 		let mapModel = [];
 
 		for(let y=0; y<map.length/w; y+=1){
+			this.mapMatrix.push([]);
+
 			for(let x=0; x<w; x+=1){
-				mapModel.push( this.createCell(w*y+x, x, y, map[w*y+x]) );
+				let newCell = this.createCell(w*y+x, x, y, map[w*y+x]);
+				mapModel.push( newCell );
+
+				this.mapMatrix[y].push(newCell.movable ? 0 : 1);
 			}
 		}
 
@@ -149,5 +155,16 @@ export default class Model{
 				cell.view.text.text = '';
 			}
 		});
+	}
+
+	/**
+	 * Апдейт Матрицы для pathFinder
+	 */
+	updateMatrix(){
+		for(let y=0; y<this.map.length/settings.cells; y+=1){
+			for(let x=0; x<settings.cells; x+=1){
+				this.mapMatrix[y][x] = this.map[settings.cells*y+x].movable ? 0 : 1;
+			}
+		}
 	}
 }

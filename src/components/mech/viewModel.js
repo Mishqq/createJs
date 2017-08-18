@@ -1,4 +1,4 @@
-import {TimelineMax, TweenMax} from "gsap";
+import {TimelineMax, TweenMax, Power0} from "gsap";
 import {settings, cellTypes} from './../../defs';
 
 
@@ -11,7 +11,7 @@ export default class ViewModel {
 		this.state = {
 			cell: cell,
 			position: cell.view.center,
-			speed: 4,
+			speed: 5,
 			active: false,
 			viewPathSquare: false,
 			viewFightSquare: false
@@ -31,16 +31,16 @@ export default class ViewModel {
 		this.pixi.addChild( graphics );
 	}
 
-	changePosition(endCell){
-		this.state.cell.movable = true;
-
-		TweenMax.to(this.pixi, 0.75, {
-			x: endCell.view.center.x,
-			y: endCell.view.center.y,
+	changePosition(arr){
+		let t1 = new TimelineMax();
+		arr.forEach(cell => {
+			t1.to(this.pixi, 0.3, {
+				x: cell.view.center.x,
+				y: cell.view.center.y,
+				easy: Power0.easeNone
+			});
 		});
-
-		endCell.movable = false;
-		this.state.cell = endCell;
+		this.state.cell = arr[ arr.length-1 ];
 		this.active = false;
 	}
 
