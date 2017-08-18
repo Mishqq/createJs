@@ -4,10 +4,11 @@ import {settings, cellTypes} from './../../defs';
 let cellWidth = settings.width / settings.cells;
 
 export default class MapView {
-	constructor(mapModel, map){
+	constructor(mapModel, map, clickCallback){
 		this.cells = [];
 		this.mapModel = mapModel;
 		this.map = map;
+		this.clickCallback = clickCallback;
 
 		this.pixi = new PIXI.Container();
 
@@ -27,7 +28,7 @@ export default class MapView {
 		view.interactive = cell.movable;
 		view.buttonMode = cell.movable;
 		view.position = {x: cell.col*cellWidth, y: cell.row*cellWidth};
-
+		view.center = {x: cell.col*cellWidth + cellWidth/2, y: cell.row*cellWidth + cellWidth/2};
 
 		let bg = new PIXI.Graphics();
 		bg.beginFill(cellTypes[cell.type].bg);
@@ -38,9 +39,9 @@ export default class MapView {
 		view.addChild( bg );
 
 		if(cell.movable){
-			['tap', 'click'].forEach(event=>{ view.on(event, this.viewAvailableSquare, this) });
-
 			let active = new PIXI.Graphics();
+
+			['tap', 'click'].forEach(event=>{ view.on(event, this.cellClick, this) });
 
 			active.beginFill(cellTypes[cell.type].bgActive);
 			active.lineStyle(1, cellTypes[cell.type].border, 1);
@@ -74,43 +75,10 @@ export default class MapView {
 		return view;
 	}
 
-	cellClick(cell){
-		if(cell._active){
+	cellClick(event){
+		let cell = event.currentTarget,
+			cellModel = cell.model;
 
-			cell.active.alpha = 0;
-			cell.tween.kill();
-
-		} else {
-
-			cell.tween = new TweenMax(cell.active, 0.3, {alpha: 0.75, repeat: -1, yoyo: true});
-
-		}
-
-		cell._active = !cell._active;
-	}
-
-	viewAvailableSquare(event){
-		let clickedCell = event.currentTarget;
-
-		if(clickedCell._active && clickedCell.model._trace === 0){
-			this.map.forEach(cell => {
-				delete cell._trace;
-				if(cell.view._active){
-					cell.view.setActive();
-					cell.view.text.text = '';
-				}
-			});
-		} else {
-			this.map.forEach(cell => {
-				delete cell._trace;
-				if(cell.view._active){
-					cell.view.setActive();
-					cell.view.text.text = '';
-				}
-			});
-
-			let availCells = this.mapModel.calculateAvailableCells(clickedCell.model, 5);
-			availCells.forEach(cell => cell.view.setActive());
-		}
+		this.clickCallback(cellModel);
 	}
 }
