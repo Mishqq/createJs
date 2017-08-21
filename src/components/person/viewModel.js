@@ -8,17 +8,18 @@ export default class ViewModel {
 
         cell.movable = false;
 
-		this.state = {
+		this.person = {
 			cell: cell,
 			position: cell.view.center,
 			speed: personTypes[person].level[level].speed,
 			health: personTypes[person].level[level].health,
-			attack: personTypes[person].level[level].attack,
+			power: personTypes[person].level[level].power,
 			attackRange: personTypes[person].level[level].attackRange,
 			active: false,
-			viewPathSquare: false,
-			viewFightSquare: false
+			status: 'walk'
 		};
+
+        cell.person = this.person;
 
 		this.pixi = new PIXI.Container();
 		this.pixi.position = {x: cell.view.center.x, y: cell.view.center.y};
@@ -35,16 +36,23 @@ export default class ViewModel {
 		this.pixi.addChild( graphics );
 	}
 
-	changePosition(arr){
+	changePosition(arr, startCell, endCell, callback){
 		let t1 = new TimelineMax();
-		arr.forEach(cell => {
+		arr.forEach((cell, idx) => {
 			t1.to(this.pixi, 0.3, {
 				x: cell.view.center.x,
 				y: cell.view.center.y,
-				easy: Power0.easeNone
+				easy: Power0.easeNone,
+				onComplete: ()=>{if(idx === arr.length-1) callback()}
 			});
 		});
-		this.state.cell = arr[ arr.length-1 ];
+
+		startCell.movable = true;
+        startCell.person = null;
+
+        endCell.person = this.person;
+        endCell.movable = false;
+		this.person.cell = endCell;
 		this.active = false;
 	}
 
@@ -55,9 +63,9 @@ export default class ViewModel {
 	}
 
 	get active(){
-		return this.state.active;
+		return this.person.active;
 	}
 	set active(status){
-		this.state.active = status;
+		this.person.active = status;
 	}
 }

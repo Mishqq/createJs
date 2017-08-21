@@ -67,8 +67,10 @@ export default class GameController{
 		GM.map.hideAvailableSquare();
 		GM.currentActiveSquare = null;
 
-		if(somePerson.active){
-			GM.currentActiveSquare = GM.map.viewAvailableSquare(somePerson.state.cell, somePerson.state.speed);
+        console.log(' ➥', somePerson.person.status, somePerson.active);
+
+		if(somePerson.person.status === 'walk' && somePerson.active){
+			GM.currentActiveSquare = GM.map.viewAvailableSquare(somePerson.person.cell, somePerson.person.speed);
 		}
 
 	}
@@ -78,14 +80,27 @@ export default class GameController{
 
 		if(!GM.currentActiveSquare || !GM.currentActiveSquare.length) return;
 
-		if(!!~GM.currentActiveSquare.indexOf(cell)){
-			GM.activePerson.state.cell.movable = true;
-			GM.activePerson.changePosition( this.createWay(GM.activePerson.state.cell, cell) );
-			cell.movable = false;
-			GM.map.updateMatrix();
+        if(!!~GM.currentActiveSquare.indexOf(cell) && GM.activePerson.person.status === 'walk'){
 
-			GM.map.hideAvailableSquare();
-			GM.currentActiveSquare = null;
+        	let ap =  GM.activePerson.person;
+
+			let wayArray = this.createWay(ap.cell, cell);
+            GM.activePerson.changePosition( wayArray, ap.cell, cell, ()=>{
+                GM.currentActiveSquare = GM.map.viewAvailableSquare(ap.cell, ap.power);
+			});
+
+            ap.status = 'fight';
+
+            GM.map.updateMatrix();
+            GM.map.hideAvailableSquare();
+            GM.currentActiveSquare = null;
+
+		} else if(GM.activePerson.person.status === 'fight'){
+
+            GM.map.hideAvailableSquare();
+            GM.currentActiveSquare = null;
+            GM.activePerson.person.status = 'walk';
+
 		}
 	}
 
