@@ -12,7 +12,6 @@ export default class MapView {
 		this.clickCallback = clickCallback;
 
 		this.pixi = new PIXI.Container();
-        this.pixi.position = settings.mapPosition;
 
 		map.forEach(cell => {
 			let cellView = this.createCellView(cell);

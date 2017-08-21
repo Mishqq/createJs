@@ -18,6 +18,7 @@ export default class GameController{
 		this.gameModel.map = new Map((...rest)=>this.clickCell(...rest));
 
 		this.swipeContainer = new PIXI.Container();
+		this.swipeContainer.position = settings.mapPosition;
         this.swipeContainer.addChild( this.gameModel.map.pixi );
 		app.stage.addChild( this.swipeContainer );
         this.gameModel.swipeContainer = this.swipeContainer;
@@ -127,10 +128,10 @@ export default class GameController{
             swCnt.x += panEvent.deltaX * settings.velocity;
         }
 
-        if(swCnt.y + panEvent.deltaY * settings.velocity > 0) {
-            swCnt.y = 0;
-        } else if(Math.abs(swCnt.y + panEvent.deltaY * settings.velocity) >= (mapSize - settings.height)){
-            swCnt.y = -(mapSize - settings.height);
+        if(swCnt.y + panEvent.deltaY * settings.velocity - settings.bars.top.h > 0) {
+            swCnt.y = settings.mapPosition.y;
+        } else if(Math.abs(swCnt.y + panEvent.deltaY * settings.velocity) >= (mapSize - settings.width + settings.bars.bottom.h)){
+            swCnt.y = -(mapSize - settings.width + settings.bars.bottom.h);
         } else {
             swCnt.y += panEvent.deltaY * settings.velocity;
         }
