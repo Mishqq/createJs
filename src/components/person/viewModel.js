@@ -1,17 +1,20 @@
 import {TimelineMax, TweenMax, Power0} from "gsap";
-import {settings, cellTypes} from './../../defs';
+import {settings, cellTypes, personTypes} from './../../defs';
 
 
 export default class ViewModel {
-	constructor({radius, cell}, clickCallback){
+	constructor({person, level, cell}, clickCallback){
 		this.clickCallback = clickCallback;
 
-		cell.movable = false;
+        cell.movable = false;
 
 		this.state = {
 			cell: cell,
 			position: cell.view.center,
-			speed: 5,
+			speed: personTypes[person].level[level].speed,
+			health: personTypes[person].level[level].health,
+			attack: personTypes[person].level[level].attack,
+			attackRange: personTypes[person].level[level].attackRange,
 			active: false,
 			viewPathSquare: false,
 			viewFightSquare: false
@@ -26,7 +29,7 @@ export default class ViewModel {
 		let graphics = new PIXI.Graphics();
 		graphics.lineStyle(1, 0x88EEE8, 1);
 		graphics.beginFill(0x394CEE, 0.75);
-		graphics.drawCircle(0, 0, radius);
+		graphics.drawCircle(0, 0, 10);
 		graphics.endFill();
 		this.pixi.addChild( graphics );
 	}

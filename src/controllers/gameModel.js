@@ -2,6 +2,8 @@ export default class gameModel {
 	constructor(){
 		this.stage = null;
 
+		this.swipeContainer = null;
+
 		this.map = null;
 
 		this.persons = [];
@@ -10,7 +12,7 @@ export default class gameModel {
 	addPerson(person){
 		this.persons.push( person );
 
-		this.stage.addChild( person.pixi );
+		this.swipeContainer.addChild( person.pixi );
 
 		this.map.updateMatrix();
 	}

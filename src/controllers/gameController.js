@@ -1,7 +1,11 @@
 import gameModel from './gameModel';
 import Map from './../components/map/model';
-import Person from './../components/mech/viewModel';
+import Person from '../components/person/viewModel';
+import {settings} from './../defs';
+
 import PF from 'pathfinding';
+
+let mapSize = settings.cellSize * settings.cells;
 
 export default class GameController{
 	constructor(app){
@@ -10,14 +14,29 @@ export default class GameController{
 
 		this.gameModel.stage = app.stage;
 		this.gameModel.map = new Map((...rest)=>this.clickCell(...rest));
-		app.stage.addChild( this.gameModel.map.pixi );
+
+
+		this.swipeContainer = new PIXI.Container();
+        this.swipeContainer.addChild( this.gameModel.map.pixi );
+		app.stage.addChild( this.swipeContainer );
+        this.gameModel.swipeContainer = this.swipeContainer;
 
 		//let pos = this.gameModel.map.getCoordsByColRow(1, 1);
 		let cell = this.gameModel.map.getCellByColRow(1, 1);
-		this.gameModel.addPerson( new Person({radius: 10, cell}, (...rest)=>this.clickPerson(...rest)) );
+		this.gameModel.addPerson( new Person({person:'fast', level:0, cell}, (...rest)=>this.clickPerson(...rest)) );
+
+        cell = this.gameModel.map.getCellByColRow(13, 5);
+        this.gameModel.addPerson( new Person({person:'middle', level:0, cell}, (...rest)=>this.clickPerson(...rest)) );
 
 		cell = this.gameModel.map.getCellByColRow(14, 5);
-		this.gameModel.addPerson( new Person({radius: 10, cell}, (...rest)=>this.clickPerson(...rest)) );
+		this.gameModel.addPerson( new Person({person:'strong', level:0, cell}, (...rest)=>this.clickPerson(...rest)) );
+
+        let canvas = document.querySelector('#game canvas');
+        let hammertime = new Hammer(canvas);
+        hammertime.get('pan').set({ direction: Hammer.DIRECTION_ALL, threshold: 0 });
+        hammertime.on('pan', (e)=>this.panMap(e));
+        // hammertime.get('swipe').set({ direction: Hammer.DIRECTION_ALL, threshold: 0 });
+        // hammertime.on('swipe', (e)=>this.swipeMap(e));
 
 		app.start();
 	}
@@ -56,7 +75,7 @@ export default class GameController{
 
 	createWay(startCell, endCell){
 		let grid = new PF.Grid(this.gameModel.map.mapMatrix);
-		let finder = new PF.BestFirstFinder({
+		let finder = new PF.BreadthFirstFinder({
 			allowDiagonal: false
 		});
 		let path = finder.findPath(startCell.col, startCell.row, endCell.col, endCell.row, grid);
@@ -75,4 +94,28 @@ export default class GameController{
 		path.forEach(path => convertPath.push(this.gameModel.map.getCellByColRow(path[0], path[1])));
 		return convertPath;
 	}
+
+    swipeMap(swipeEvent){
+        //console.log('swipeEvent ➥',swipeEvent);
+    }
+
+    panMap(panEvent){
+    	let {swipeContainer: swCnt} = this;
+
+        if(swCnt.x + panEvent.deltaX * settings.velocity > 0) {
+            swCnt.x = 0;
+        } else if(Math.abs(swCnt.x + panEvent.deltaX * settings.velocity) >= (mapSize - settings.width)){
+            swCnt.x = -(mapSize - settings.width);
+		} else {
+            swCnt.x += panEvent.deltaX * settings.velocity;
+        }
+
+        if(swCnt.y + panEvent.deltaY * settings.velocity > 0) {
+            swCnt.y = 0;
+        } else if(Math.abs(swCnt.y + panEvent.deltaY * settings.velocity) >= (mapSize - settings.height)){
+            swCnt.y = -(mapSize - settings.height);
+        } else {
+            swCnt.y += panEvent.deltaY * settings.velocity;
+        }
+    }
 }

@@ -7,7 +7,7 @@ import {settings} from './defs';
 window['PIXI'] = PIXI;
 
 const app = new PIXI.Application(settings.width, settings.height, {backgroundColor: 0x1099bb, antialias: true});
-document.body.appendChild(app.view);
+document.body.querySelector('#game').appendChild(app.view);
 
 app.stop();
 

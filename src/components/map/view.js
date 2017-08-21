@@ -1,16 +1,18 @@
 import {TimelineMax, TweenMax} from "gsap";
 import {settings, cellTypes} from './../../defs';
+import Hammer from 'hammerjs';
 
-let cellWidth = settings.width / settings.cells;
+let cellWidth = settings.cellSize;
 
 export default class MapView {
 	constructor(mapModel, map, clickCallback){
-		this.cells = [];
+        this.cells = [];
 		this.mapModel = mapModel;
 		this.map = map;
 		this.clickCallback = clickCallback;
 
 		this.pixi = new PIXI.Container();
+        this.pixi.position = settings.mapPosition;
 
 		map.forEach(cell => {
 			let cellView = this.createCellView(cell);
@@ -18,7 +20,7 @@ export default class MapView {
 
 			this.pixi.addChild( cellView );
 			this.cells.push( cellView );
-		})
+		});
 	}
 
 	createCellView(cell){
