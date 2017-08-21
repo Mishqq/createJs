@@ -27,10 +27,11 @@ export default class ViewModel {
 		['tap', 'click'].forEach(event=>{ this.pixi.on(event, this.clickHandler, this) });
 
 		let graphics = new PIXI.Graphics();
-		graphics.lineStyle(1, 0x88EEE8, 1);
-		graphics.beginFill(0x394CEE, 0.75);
-		graphics.drawCircle(0, 0, 10);
-		graphics.endFill();
+		graphics
+			.lineStyle(1, 0x88EEE8, 1)
+			.beginFill(0x394CEE, 0.75)
+			.drawCircle(0, 0, 10)
+			.endFill();
 		this.pixi.addChild( graphics );
 	}
 

@@ -1,6 +1,8 @@
 import gameModel from './gameModel';
 import Map from './../components/map/model';
 import Person from '../components/person/viewModel';
+import bottomPanel from '../components/info/bottomPanel';
+import topPanel from '../components/info/topPanel';
 import {settings} from './../defs';
 
 import PF from 'pathfinding';
@@ -14,7 +16,6 @@ export default class GameController{
 
 		this.gameModel.stage = app.stage;
 		this.gameModel.map = new Map((...rest)=>this.clickCell(...rest));
-
 
 		this.swipeContainer = new PIXI.Container();
         this.swipeContainer.addChild( this.gameModel.map.pixi );
@@ -35,8 +36,22 @@ export default class GameController{
         let hammertime = new Hammer(canvas);
         hammertime.get('pan').set({ direction: Hammer.DIRECTION_ALL, threshold: 0 });
         hammertime.on('pan', (e)=>this.panMap(e));
+        hammertime.on('panstart', (e)=>{
+        	let start = {x: e.center.x - canvas.offsetLeft, y: e.center.y - canvas.offsetTop};
+
+            this.swipeFlag = start.x >= settings.swipeSquare.x &&
+				start.x <= settings.swipeSquare.x + settings.swipeSquare.w &&
+				start.y >= settings.swipeSquare.y &&
+                start.y <= settings.swipeSquare.y + settings.swipeSquare.h
+		});
         // hammertime.get('swipe').set({ direction: Hammer.DIRECTION_ALL, threshold: 0 });
         // hammertime.on('swipe', (e)=>this.swipeMap(e));
+
+        this.bottomPanel = new bottomPanel();
+        app.stage.addChild( this.bottomPanel.pixi );
+
+        this.topPanel = new topPanel();
+        app.stage.addChild( this.topPanel.pixi );
 
 		app.start();
 	}
@@ -100,6 +115,8 @@ export default class GameController{
     }
 
     panMap(panEvent){
+        if(!this.swipeFlag) return;
+
     	let {swipeContainer: swCnt} = this;
 
         if(swCnt.x + panEvent.deltaX * settings.velocity > 0) {

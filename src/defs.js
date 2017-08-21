@@ -4,6 +4,7 @@ export const settings = {
 	width: 600,
 	height: 600,
 	cells: 20,
+	swipeSquare: {x: 0, y: 100, w: 600, h: 400},
 	cellSize: 40,
 	mapPosition: {x: 0, y: 0},
 	velocity: 0.15
