@@ -2,13 +2,13 @@ import MapView from './view';
 
 export default class Model{
 	constructor({mapTemplate, mapWidthCell, mapHeightCell, cellWidth, cellHeight, cellTypes, cellClick}){
-
-		this.mapMatrix = [];
+		this.mapWidth = mapWidthCell;
+		this.mapHeight = mapHeightCell;
 
 		this.map = this.createMapModel(
 			mapTemplate || [' ', ' ', ' ', ' '],
-			mapWidthCell || 30,
-			mapHeightCell || 30,
+			mapWidthCell || 2,
+			mapHeightCell || 2,
 			cellTypes || {
                 empty: {
                     bg: 0xF0ECBE,
@@ -41,19 +41,31 @@ export default class Model{
         height = height || mapTemplate.length/width;
 
 		for(let y=0; y<height; y+=1){
-			this.mapMatrix.push([]);
-
 			for(let x=0; x<width; x+=1){
 				let newCell = this.createCell(width*y+x, x, y, mapTemplate[width*y+x], cellTypes);
 				mapModel.push( newCell );
-
-				this.mapMatrix[y].push(newCell.movable ? 0 : 1);
 			}
 		}
 
 		this.linkCells(mapModel, width);
 
 		return mapModel;
+	}
+
+    /**
+	 *
+     */
+	getMatrix(){
+		let arr = [];
+        for(let y=0; y<this.mapHeight; y+=1){
+            arr.push([]);
+
+            for(let x=0; x<this.mapWidth; x+=1){
+            	let cell = this.getCellByColRow(x, y);
+                arr[y].push(cell.movable ? 0 : 1);
+            }
+        }
+        return arr;
 	}
 
 	/**
@@ -70,12 +82,14 @@ export default class Model{
 
 		let template = {
 			idx: idx || null,
-			col: col || null,
-			row: row || null,
+			col: null,
+			row: null,
 			movable: null,
 			type: type || null,
 			neighbors: []
 		};
+        template.col = col;
+        template.row = row;
 
 		template.textColor = cellTypes[type].textColor;
 
@@ -172,16 +186,5 @@ export default class Model{
 				cell.view.text.text = '';
 			}
 		});
-	}
-
-	/**
-	 * Апдейт Матрицы для pathFinder
-	 */
-	updateMatrix(){
-		for(let y=0; y<this.map.length/settings.cells; y+=1){
-			for(let x=0; x<settings.cells; x+=1){
-				this.mapMatrix[y][x] = this.map[settings.cells*y+x].movable ? 0 : 1;
-			}
-		}
 	}
 }

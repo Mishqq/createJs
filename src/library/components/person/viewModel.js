@@ -5,6 +5,9 @@ const states = ['canWalk', 'canAttack', 'disable'];
 
 export default class ViewModel {
 	constructor({personType, level, clickCallback}){
+        level = level === undefined ? 0 : level;
+        clickCallback = clickCallback === undefined ? ()=>{console.log('person click')} : clickCallback;
+
 		let pixi = new PIXI.Container();
 		pixi.interactive = true;
 		pixi.buttonMode = true;
