@@ -1,36 +1,57 @@
 import MapView from './view';
-import {settings, cellTypes, mapTemplate as map} from './../../defs';
 
 export default class Model{
-	constructor(clickCallback){
-		this.mapMatrix = [];
-		this.map = this.createMapModel(settings.cells);
+	constructor({mapTemplate, mapWidthCell, mapHeightCell, cellWidth, cellHeight, cellTypes, cellClick}){
 
-		let view = new MapView( this, this.map, clickCallback );
+		this.mapMatrix = [];
+
+		this.map = this.createMapModel(
+			mapTemplate || [' ', ' ', ' ', ' '],
+			mapWidthCell || 30,
+			mapHeightCell || 30,
+			cellTypes || {
+                empty: {
+                    bg: 0xF0ECBE,
+                    bgActive: 0xDAB363,
+                    border: 0x817D65,
+                    movable: true,
+                    movableCf: 1,
+                    textColor: 0xBBBD73,
+                    text: '',
+                    texture: ''
+                }
+            });
+
+		let view = new MapView( this.map, cellWidth, cellHeight, cellTypes, cellClick );
 
 		this.pixi = view.pixi;
 	}
 
-	/**
+    /**
 	 * Функция создаёт объект-модель сцены
-	 * @param w - параметр ширины сцены
-	 * @returns {Array}
-	 */
-	createMapModel(w){
+     * @param mapTemplate
+     * @param width
+     * @param height
+     * @param cellTypes
+     * @returns {Array}
+     */
+	createMapModel(mapTemplate, width, height, cellTypes){
 		let mapModel = [];
 
-		for(let y=0; y<map.length/w; y+=1){
+        height = height || mapTemplate.length/width;
+
+		for(let y=0; y<height; y+=1){
 			this.mapMatrix.push([]);
 
-			for(let x=0; x<w; x+=1){
-				let newCell = this.createCell(w*y+x, x, y, map[w*y+x]);
+			for(let x=0; x<width; x+=1){
+				let newCell = this.createCell(width*y+x, x, y, mapTemplate[width*y+x], cellTypes);
 				mapModel.push( newCell );
 
 				this.mapMatrix[y].push(newCell.movable ? 0 : 1);
 			}
 		}
 
-		this.linkCells(mapModel, w);
+		this.linkCells(mapModel, width);
 
 		return mapModel;
 	}
@@ -40,31 +61,27 @@ export default class Model{
 	 * @param idx
 	 * @param col
 	 * @param row
-	 * @param content ~ cellTypes: x, w, f...
+	 * @param type ~ cellTypes: x, w, f...
+	 * @param cellTypes
 	 * @returns {{idx: null, col: null, row: null, movable: null, type: null, neighbors: Array}}
 	 */
-	createCell(idx, col, row, content){
-		content = content === ' ' ? 'empty' : content;
+	createCell(idx, col, row, type, cellTypes){
+        type = type === ' ' ? 'empty' : type;
 
 		let template = {
-			idx: null,
-			col: null,
-			row: null,
+			idx: idx || null,
+			col: col || null,
+			row: row || null,
 			movable: null,
-			type: null,
+			type: type || null,
 			neighbors: []
 		};
 
-		template.idx = idx;
-		template.col = col;
-		template.row = row;
-		template.type = content;
+		template.textColor = cellTypes[type].textColor;
 
-		template.textColor = cellTypes[content].textColor;
-
-		template.movable = cellTypes[content].movable;
+		template.movable = cellTypes[type].movable;
 		if(template.movable)
-			template.movableCf = cellTypes[content].movableCf;
+			template.movableCf = cellTypes[type].movableCf;
 
 		return template;
 	}
@@ -135,11 +152,11 @@ export default class Model{
 	/**
 	 * Подстветка доступной для передвижения объекта области
 	 * @param cell
-	 * @param speed
+	 * @param distance
 	 */
-	viewAvailableSquare(cell, speed){
+	viewSquare(cell, distance){
 		// TODO: неявное поведение hideAvailableSquare, переписать
-		let availCells = this.calculateAvailableCells(cell, speed);
+		let availCells = this.calculateAvailableCells(cell, distance);
 		availCells.forEach(cell => cell.view.setActive());
 		return availCells;
 	}
@@ -147,7 +164,7 @@ export default class Model{
 	/**
 	 * Скрытие области подсветки доступной для перемещения области
 	 */
-	hideAvailableSquare(){
+    hideSquare(){
 		this.map.forEach(cell => {
 			delete cell._trace;
 			if(cell.view._active){

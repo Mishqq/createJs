@@ -1,111 +1,103 @@
-import gameModel from './gameModel';
-import Map from './../components/map/model';
-import Person from '../components/person/viewModel';
-import bottomPanel from '../components/info/bottomPanel';
-import topPanel from '../components/info/topPanel';
-import {settings} from './../defs';
-
 import PF from 'pathfinding';
+import Hammer from 'hammerjs'
+import {settings, cellTypes, mapTemplate} from './../defs';
+import GL from './../library/library';
 
 let mapSize = settings.cellSize * settings.cells;
 
 export default class GameController{
 	constructor(app){
-		this.stage = app.stage;
-		this.gameModel = new gameModel();
+        this.map = GL.createMap({
+            mapTemplate: mapTemplate,
+			mapWidthCell: settings.cells,
+			mapHeightCell: settings.cells,
+			cellWidth: settings.cellSize,
+			cellHeight: settings.cellSize,
+			cellTypes,
+			cellClick: (...rest)=>this.clickCell(...rest)
+		});
 
-		this.gameModel.stage = app.stage;
-		this.gameModel.map = new Map((...rest)=>this.clickCell(...rest));
+        let person = GL.newPerson({
+			personType: 'fast',
+			level: 0,
+			clickCallback: (...args)=>{ this.clickPerson(...args) }
+        });
 
-		this.swipeContainer = new PIXI.Container();
-		this.swipeContainer.position = settings.mapPosition;
-        this.swipeContainer.addChild( this.gameModel.map.pixi );
-		app.stage.addChild( this.swipeContainer );
-        this.gameModel.swipeContainer = this.swipeContainer;
-
-		//let pos = this.gameModel.map.getCoordsByColRow(1, 1);
-		let cell = this.gameModel.map.getCellByColRow(1, 1);
-		this.gameModel.addPerson( new Person({person:'fast', level:0, cell}, (...rest)=>this.clickPerson(...rest)) );
-
-        cell = this.gameModel.map.getCellByColRow(13, 5);
-        this.gameModel.addPerson( new Person({person:'middle', level:0, cell}, (...rest)=>this.clickPerson(...rest)) );
-
-		cell = this.gameModel.map.getCellByColRow(14, 5);
-		this.gameModel.addPerson( new Person({person:'strong', level:0, cell}, (...rest)=>this.clickPerson(...rest)) );
-
+        this.swipeContainer = new PIXI.Container();
+        this.swipeContainer.position = settings.mapPosition;
+        this.swipeContainer.addChild( this.map.pixi );
+        app.stage.addChild( this.swipeContainer );
         let canvas = document.querySelector('#game canvas');
         let hammertime = new Hammer(canvas);
         hammertime.get('pan').set({ direction: Hammer.DIRECTION_ALL, threshold: 0 });
         hammertime.on('pan', (e)=>this.panMap(e));
         hammertime.on('panstart', (e)=>{
-        	let start = {x: e.center.x - canvas.offsetLeft, y: e.center.y - canvas.offsetTop};
+            let start = {x: e.center.x - canvas.offsetLeft, y: e.center.y - canvas.offsetTop};
 
             this.swipeFlag = start.x >= settings.swipeSquare.x &&
-				start.x <= settings.swipeSquare.x + settings.swipeSquare.w &&
-				start.y >= settings.swipeSquare.y &&
+                start.x <= settings.swipeSquare.x + settings.swipeSquare.w &&
+                start.y >= settings.swipeSquare.y &&
                 start.y <= settings.swipeSquare.y + settings.swipeSquare.h
-		});
-        // hammertime.get('swipe').set({ direction: Hammer.DIRECTION_ALL, threshold: 0 });
-        // hammertime.on('swipe', (e)=>this.swipeMap(e));
+        });
 
-        this.bottomPanel = new bottomPanel();
-        app.stage.addChild( this.bottomPanel.pixi );
-
-        this.topPanel = new topPanel();
-        app.stage.addChild( this.topPanel.pixi );
+        GL.addPerson(person, this.map.getCellByColRow(1, 1), this.swipeContainer);
 
 		app.start();
 	}
 
-	clickPerson(e, somePerson){
-		let {gameModel: GM} = this;
+	clickPerson(e, person){
+		if( !this.activePerson ){
 
-		e.stopPropagation();
+            this.activePerson = person;
+            this.square = this.map.viewSquare(person.cell, person.speed);
+            person.state = 'canWalk';
 
-		GM.setActivePerson(somePerson);
+		} else if( this.activePerson && person.state === 'canWalk' ){
 
-		GM.map.hideAvailableSquare();
-		GM.currentActiveSquare = null;
+            this.map.hideSquare();
+            person.state = 'canFight';
 
-        console.log(' ➥', somePerson.person.status, somePerson.active);
+		} else if( this.activePerson && person.state === 'canFight' ) {
 
-		if(somePerson.person.status === 'walk' && somePerson.active){
-			GM.currentActiveSquare = GM.map.viewAvailableSquare(somePerson.person.cell, somePerson.person.speed);
+            this.map.hideSquare();
+            this.square = this.map.viewSquare(person.cell, person.attackRange);
+            this.activePerson = null;
+            person.state = 'disable';
+
+		} else if( this.activePerson && person.state === 'disable' ) {
+
+            this.map.hideSquare();
+            this.activePerson = null;
+
 		}
-
 	}
 
 	clickCell(cell){
-		let {gameModel: GM} = this;
+		if(this.square && this.activePerson && this.activePerson.state === 'canWalk'){
 
-		if(!GM.currentActiveSquare || !GM.currentActiveSquare.length) return;
+            let way = this.createWay(this.activePerson.cell, cell);
 
-        if(!!~GM.currentActiveSquare.indexOf(cell) && GM.activePerson.person.status === 'walk'){
+            GL.changePosition(this.activePerson,
+				way,
+				this.activePerson.cell,
+				cell,
+				()=>{
+            		this.map.hideSquare();
+                    this.map.viewSquare(this.activePerson.cell, this.activePerson.attackRange);
+                    this.activePerson.state = 'canFight';
+            	})
+		} else if( this.activePerson && this.activePerson.state === 'canFight' ){
 
-        	let ap =  GM.activePerson.person;
-
-			let wayArray = this.createWay(ap.cell, cell);
-            GM.activePerson.changePosition( wayArray, ap.cell, cell, ()=>{
-                GM.currentActiveSquare = GM.map.viewAvailableSquare(ap.cell, ap.power);
-			});
-
-            ap.status = 'fight';
-
-            GM.map.updateMatrix();
-            GM.map.hideAvailableSquare();
-            GM.currentActiveSquare = null;
-
-		} else if(GM.activePerson.person.status === 'fight'){
-
-            GM.map.hideAvailableSquare();
-            GM.currentActiveSquare = null;
-            GM.activePerson.person.status = 'walk';
+            console.log('Отаке ➥');
+            this.map.hideSquare();
+            this.activePerson = null;
 
 		}
+
 	}
 
 	createWay(startCell, endCell){
-		let grid = new PF.Grid(this.gameModel.map.mapMatrix);
+		let grid = new PF.Grid(this.map.mapMatrix);
 		let finder = new PF.BreadthFirstFinder({
 			allowDiagonal: false
 		});
@@ -122,7 +114,7 @@ export default class GameController{
 		path = rollUpPath;
 
 		let convertPath = [];
-		path.forEach(path => convertPath.push(this.gameModel.map.getCellByColRow(path[0], path[1])));
+		path.forEach(path => convertPath.push(this.map.getCellByColRow(path[0], path[1])));
 		return convertPath;
 	}
 
