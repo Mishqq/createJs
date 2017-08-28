@@ -1,17 +1,15 @@
 export const gameName = 'game';
 
 export const settings = {
-	width: 600,
-	height: 600,
-	cells: 20,
-	swipeSquare: {x: 0, y: 100, w: 600, h: 400},
-	bars: {
-		top: {x: 0, y: 0, w: 600, h: 100},
-		bottom: {x: 0, y: 500, w: 600, h: 100},
-	},
-	cellSize: 40,
-	mapPosition: {x: 0, y: 100},
-	velocity: 0.15
+    width: 600,
+    height: 600,
+    cells: 20,
+    cellSize: 40,
+    mapContainer: {x: 0, y: 100, w: 600, h: 500, velocity: 0.15},
+    topBar: {x: 0, y: 0, w: 600, h: 100},
+    bottomBar: {x: 0, y: 500, w: 600, h: 100},
+    leftBar: {y: 100, w: 200, h: 500, hidden: true},
+    rightBar: {y: 100, w: 200, h: 500, hidden: true}
 };
 
 export const personTypes = {
